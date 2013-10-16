@@ -2,7 +2,7 @@
 
 ## Description
 A [knife] (http://docs.opscode.com/knife.html) plugin to create and delete
-[Docker] (http://docker.io) resources to be managed by Chef.
+[Docker] (http://docker.io) containers to be managed by Chef.
 
 ## Installation
 Make sure you are running Chef, which can be installed via:
