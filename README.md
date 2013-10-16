@@ -16,8 +16,17 @@ This plugin is distributed as a Ruby Gem. To install it, run:
 Depending on your system's configuration, you may need to run this command
 with root/administrator privileges.
 
-Make sure you are able to create/list/stop Docker containers. Please see 
+## Prerequisites
+You need to be able to create/list/stop Docker containers. Please see 
 [the Docker documentation] (https://www.docker.io/gettingstarted/) for more information. 
+
+knife-docker bootstraps your Docker containers via ssh. Make sure the Docker
+image you are using has the ssh daemon installed, and that you are able to
+login:
+      
+    id=$(docker run -d -p 22 $IMAGE /usr/sbin/sshd -D)
+    port=$(docker port $id 22)
+    ssh root@localhost -p $port
 
 ## Examples
       # Create and bootstrap a Debian container over ssh
