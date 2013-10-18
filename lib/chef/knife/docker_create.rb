@@ -100,7 +100,7 @@ module ChefDocker
 
       # get container IP
       container_info = `docker inspect #{id}`
-      ip = container_info.match(/"IPAddress": "(?<ip>[\d\.]+)"/)['ip']
+      ip = container_info.match(/"IPAddress": "([\d\.]+)"/)[1]
 
       # containers boot *very* fast, but it might happen that we try to
       # bootstrap before SSH is up. Let's wait a second.

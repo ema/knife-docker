@@ -41,9 +41,8 @@ module ChefDocker
       running_containers = []
 
       `docker ps`.split(/\n/).each do |c|
-        match = c.match(/^(?<id>[\d\w]{12})\s/)
-        if match
-          running_containers.push match['id']
+        if c =~ /^[\d\w]{12}\s/
+          running_containers.push c.split[0]
         end
       end
 
