@@ -2,7 +2,8 @@
 
 ## Description
 A [knife] (http://docs.opscode.com/knife.html) plugin to create and delete
-[Docker] (http://docker.io) containers to be managed by Chef.
+[Docker] (http://docker.io) containers managed by Chef. knife-docker can be
+used to quickly test your Chef cookbooks against a clean system.
 
 ## Installation
 Make sure you are running Chef, which can be installed via:
