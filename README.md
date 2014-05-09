@@ -1,9 +1,12 @@
 # Knife Docker
 
 ## Description
-A [knife] (http://docs.opscode.com/knife.html) plugin to create and delete
-[Docker] (http://docker.io) containers managed by Chef. knife-docker can be
-used to easily test your Chef cookbooks against a clean system.
+knife-docker makes it easy to test your Chef cookbooks against a clean system.
+It is a [knife] (http://docs.opscode.com/knife.html) plugin to create and
+delete [Docker] (http://docker.io) containers managed by Chef.
+
+Used together with [chef-zero] (https://github.com/opscode/chef-zero),
+knife-docker is a great way to get started with Chef.
 
 ## Installation
 Make sure you are running Chef, which can be installed via:
@@ -26,7 +29,7 @@ knife-docker bootstraps your Docker containers via SSH. Thus, you need to use a 
     # Add your SSH key to Dockerfile
     $ vim Dockerfile
 
-    # Build Docker container image called 'knife-docker-debian'
+    # Build a Docker container image called 'knife-docker-debian'
     $ docker build -t knife-docker-debian .
 
 ## Examples
