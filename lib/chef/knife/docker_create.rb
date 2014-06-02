@@ -15,7 +15,6 @@
 # limitations under the License.
 #
 
-require 'pry'
 require 'chef/knife'
 
 module ChefDocker
@@ -151,7 +150,6 @@ module ChefDocker
 
       # get container IP
       container_info = `docker inspect #{id}`
-      binding.pry
       ip = container_info.match(/"IPAddress": "([\d\.]+)"/)[1]
 
       # containers boot *very* fast, but it might happen that we try to
