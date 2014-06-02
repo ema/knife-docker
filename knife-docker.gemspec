@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
   s.version = Knife::Docker::VERSION
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["Emanuele Rocca"]
+  s.authors = ["Emanuele Rocca", "Pasha Sadikov"]
   s.summary = "Chef's Knife plugin to create and bootstrap Docker containers"
   s.description = s.summary
   s.email = "ema@linux.it"
