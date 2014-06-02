@@ -15,6 +15,7 @@
 # limitations under the License.
 #
 
+require 'pry'
 require 'chef/knife'
 
 module ChefDocker
@@ -25,60 +26,105 @@ module ChefDocker
       Chef::Knife::Bootstrap.load_deps
     end
 
-    banner "knife docker create (options)"
-    
+    banner "knife docker create RUN_COMMAND (options)"
+
     option :_image,
-      :short => "-I IMAGE",
-      :long => "--image IMAGE",
-      :description => "The Docker container image to use"
+    :short => "-I IMAGE",
+    :long => "--image IMAGE",
+    :description => "The Docker container image to use"
 
     option :chef_node_name,
-      :short => "-N NAME",
-      :long => "--node-name NAME",
-      :description => "The Chef node name for your new node"
+           :short => "-N NAME",
+           :long => "--node-name NAME",
+           :description => "The Chef node name for your new node"
 
     option :ssh_user,
-      :short => "-x USERNAME",
-      :long => "--ssh-user USERNAME",
-      :description => "The ssh username",
-      :default => 'root'
+           :short => "-x USERNAME",
+           :long => "--ssh-user USERNAME",
+           :description => "The ssh username",
+           :default => 'root'
 
     option :ssh_password,
-      :short => "-P PASSWORD",
-      :long => "--ssh-password PASSWORD",
-      :description => "The ssh password"
+           :short => "-P PASSWORD",
+           :long => "--ssh-password PASSWORD",
+           :description => "The ssh password"
 
     option :ssh_port,
-      :long => "--ssh-port PORT",
-      :description => "The ssh port. Default is 22",
-      :default => '22'
+           :long => "--ssh-port PORT",
+           :description => "The ssh port. Default is 22",
+           :default => '22'
 
     option :distro,
-      :short => "-d DISTRO",
-      :long => "--distro DISTRO",
-      :description => "Bootstrap a distro using a template",
-      :proc => Proc.new { |d| Chef::Config[:knife][:distro] = d },
-      :default => "chef-full"
+           :short => "-d DISTRO",
+           :long => "--distro DISTRO",
+           :description => "Bootstrap a distro using a template",
+           :proc => Proc.new { |d| Chef::Config[:knife][:distro] = d },
+           :default => "chef-full"
 
     option :template_file,
-      :long => "--template-file TEMPLATE",
-      :description => "Full path to location of template to use",
-      :proc => Proc.new { |t| Chef::Config[:knife][:template_file] = t },
-      :default => false
+           :long => "--template-file TEMPLATE",
+           :description => "Full path to location of template to use",
+           :proc => Proc.new { |t| Chef::Config[:knife][:template_file] = t },
+           :default => false
 
     option :run_list,
-      :short => "-r RUN_LIST",
-      :long => "--run-list RUN_LIST",
-      :description => "Comma separated list of roles/recipes to apply",
-      :proc => lambda { |o| o.split(/[\s,]+/) },
-      :default => []
+           :short => "-r RUN_LIST",
+           :long => "--run-list RUN_LIST",
+           :description => "Comma separated list of roles/recipes to apply",
+           :proc => lambda { |o| o.split(/[\s,]+/) },
+           :default => []
 
     option :identity_file,
-      :short => "-i IDENTITY_FILE",
-      :long => "--identity IDENTITY_FILE",
-      :description => "SSH identity file for authentication"
+           :short => "-i IDENTITY_FILE",
+           :long => "--identity IDENTITY_FILE",
+           :description => "SSH identity file for authentication"
 
-    def locate_config_value(key)
+    option :port_forward,
+           :short => "-p PORT[,PORT...]",
+           :long => "--forward PORT[,PORT...]",
+           :description => "Ports to forward using docker syntax",
+           :proc => lambda { |o| o.split(/[\s,]+/) },
+           :default => []
+
+    option :dns_servers,
+           :long => "--dns HOST[,HOST...]",
+           :description => "DNS servers",
+           :proc => lambda { |o| o.split(/[\s,]+/) },
+           :default => []
+
+    option :dns_search,
+           :long => "--search DOMAIN[,DOMAIN...]",
+           :description => "DNS search suffixes",
+           :proc => lambda { |o| o.split(/[\s,]+/) },
+           :default => []
+
+    option :volumes,
+           :long => "--volumes VOLUME[,VOLUME...]",
+           :description => "Volumes to mount, see docker syntax",
+           :proc => lambda { |o| o.split(/[\s,]+/) },
+           :default => []
+
+    option :hostname,
+           :short => "-h HOSTNAME",
+           :long => "--hostname HOSTNAME",
+           :description => "Hostname to assign to the container"
+
+    option :memory,
+           :short => "-m MEMORY",
+           :long => "--memory MEMORY",
+           :description => "How much RAM to allocate/permit"
+
+    option :cpu,
+           :short => "-C CPU",
+           :long => "--cpu CPU",
+           :description => "How much CPU to allocate/permit"
+
+    option :privileged,
+           :short => "-G",
+           :long => "--privileged",
+           :description => "Runs in privileged mode"
+
+   def locate_config_value(key)
       key = key.to_sym
       config[key] || Chef::Config[:knife][key]
     end
@@ -89,9 +135,10 @@ module ChefDocker
         show_usage
         exit 1
       end
+      binding.pry
 
       # start a new container with sshd
-      id = `docker run -d -p #{config[:ssh_port]} #{config[:_image]} /usr/sbin/sshd -D`
+      id = `#{build_run_command}`
 
       unless $?.exitstatus == 0
         ui.error("Cannot create container")
@@ -107,6 +154,20 @@ module ChefDocker
       sleep 1
 
       bootstrap_container(ip, id.rstrip).run
+    end
+
+    def build_run_command
+      cmd = "run -d -p #{config[:ssh_port]}"
+      Array(config[:port_forward]).each {|port| cmd << " -p #{port}"}
+      Array(config[:dns_servers]).each {|dns| cmd << " --dns #{dns}"}
+      Array(config[:dns_search]).each {|search| cmd << " --dns-search #{search}"}
+      Array(config[:volumes]).each {|volume| cmd << " -v #{volume}"}
+      cmd << " -h #{config[:hostname]}" if config[:hostname]
+      cmd << " -m #{config[:memory]}" if config[:memory]
+      cmd << " -c #{config[:cpu]}" if config[:cpu]
+      cmd << " -privileged" if config[:privileged]
+      cmd << " #{config[:_image]} #{config[:run_command]}"
+      cmd
     end
 
     def bootstrap_container(fqdn, id)
