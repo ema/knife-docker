@@ -124,7 +124,7 @@ module ChefDocker
            :long => "--privileged",
            :description => "Runs in privileged mode"
 
-   def locate_config_value(key)
+    def locate_config_value(key)
       key = key.to_sym
       config[key] || Chef::Config[:knife][key]
     end
@@ -135,7 +135,11 @@ module ChefDocker
         show_usage
         exit 1
       end
-      binding.pry
+      if name_args.size > 0
+        config[:run_command] = name_args * ' '
+      else
+        config[:run_command] = "/usr/sbin/sshd -D -o UseDNS=no -o UsePAM=no"
+      end
 
       # start a new container with sshd
       id = `#{build_run_command}`
@@ -147,6 +151,7 @@ module ChefDocker
 
       # get container IP
       container_info = `docker inspect #{id}`
+      binding.pry
       ip = container_info.match(/"IPAddress": "([\d\.]+)"/)[1]
 
       # containers boot *very* fast, but it might happen that we try to
@@ -157,7 +162,7 @@ module ChefDocker
     end
 
     def build_run_command
-      cmd = "run -d -p #{config[:ssh_port]}"
+      cmd = "docker run -d -p #{config[:ssh_port]}"
       Array(config[:port_forward]).each {|port| cmd << " -p #{port}"}
       Array(config[:dns_servers]).each {|dns| cmd << " --dns #{dns}"}
       Array(config[:dns_search]).each {|search| cmd << " --dns-search #{search}"}
