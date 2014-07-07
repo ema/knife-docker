@@ -36,6 +36,9 @@ knife-docker bootstraps your Docker containers via SSH. Thus, you need to use a 
       # Create and bootstrap a Debian container over ssh
       $ knife docker create -I knife-docker-debian
 
+      # If using boot2docker (i.e. running docker + knife under os x)
+      $ knife docker create -I knife-docker-debian -b
+
       # Create a Debian container, bootstrap it, and apply the specified roles/recipes
       $ knife docker create -I knife-docker-debian -r 'recipe[postgresql::server]'
 
