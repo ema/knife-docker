@@ -106,7 +106,7 @@ module ChefDocker
       end
 
       # if using boot2docker, get server ip and forwarded container ssh port
-      if config[:boot2docker] == true
+      if config[:boot2docker]
         boot2docker_ip = `boot2docker ip 2>/dev/null`
         ip = boot2docker_ip.match(/([\d\.]+)/)[1]
         container_info = `docker inspect #{id}`
