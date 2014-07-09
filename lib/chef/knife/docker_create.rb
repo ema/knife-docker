@@ -26,7 +26,7 @@ module ChefDocker
     end
 
     banner "knife docker create (options)"
-    
+
     option :_image,
       :short => "-I IMAGE",
       :long => "--image IMAGE",
@@ -78,6 +78,13 @@ module ChefDocker
       :long => "--identity IDENTITY_FILE",
       :description => "SSH identity file for authentication"
 
+    option :boot2docker,
+      :short => "-b",
+      :long => "--boot2docker",
+      :boolean => true,
+      :default => false,
+      :description => "Set if using boot2docker"
+
     def locate_config_value(key)
       key = key.to_sym
       config[key] || Chef::Config[:knife][key]
@@ -98,9 +105,17 @@ module ChefDocker
         exit 1
       end
 
-      # get container IP
-      container_info = `docker inspect #{id}`
-      ip = container_info.match(/"IPAddress": "([\d\.]+)"/)[1]
+      # if using boot2docker, get server ip and forwarded container ssh port
+      if config[:boot2docker]
+        boot2docker_ip = `boot2docker ip 2>/dev/null`
+        ip = boot2docker_ip.match(/([\d\.]+)/)[1]
+        container_info = `docker inspect #{id}`
+        config[:ssh_port] = container_info.match(/"HostPort": "(\d+)"/)[1]
+      else
+        # get container IP
+        container_info = `docker inspect #{id}`
+        ip = container_info.match(/"IPAddress": "([\d\.]+)"/)[1]
+      end
 
       # containers boot *very* fast, but it might happen that we try to
       # bootstrap before SSH is up. Let's wait a second.
