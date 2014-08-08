@@ -18,6 +18,7 @@
 require 'chef/knife'
 require 'chef/node'
 require 'chef/api_client'
+require 'docker'
 
 module ChefDocker
   class DockerDelete < Chef::Knife
@@ -38,21 +39,15 @@ module ChefDocker
         exit 1
       end
 
-      running_containers = []
-
-      `docker ps`.split(/\n/).each do |c|
-        if c =~ /^[\d\w]{12}\s/
-          running_containers.push c.split[0]
-        end
-      end
-
       @name_args.each do |name|
-        unless running_containers.include? name
+        begin
+          container = Docker::Container.get(name)
+        rescue Docker::Error::NotFoundError => error
           ui.warn("Container #{name} does not exist")
           next
         end
 
-        delete name
+        delete(container)
       end
     end
 
@@ -67,12 +62,12 @@ module ChefDocker
     end
 
     def delete(container)
-      `docker stop #{container}`
-      `docker rm #{container}`
+      container.stop()
+      container.delete()
 
       if config[:_purge]
-        destroy_item(Chef::Node, container, "node")
-        destroy_item(Chef::ApiClient, container, "client")
+        destroy_item(Chef::Node, container.id, "node")
+        destroy_item(Chef::ApiClient, container.id, "client")
       end
     end
   end
