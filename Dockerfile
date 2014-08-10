@@ -1,6 +1,6 @@
 # Chef cookbook testing, Debian/Ubuntu systems
 #
-# VERSION               0.0.1
+# VERSION               0.0.2
 
 FROM      debian:wheezy
 #FROM      ubuntu:precise
@@ -17,7 +17,14 @@ RUN chmod 600 /root/.ssh/authorized_keys
 RUN printf '#!/bin/sh\n\nexit 101\n' > /usr/sbin/policy-rc.d
 RUN chmod +x /usr/sbin/policy-rc.d
 
+# Install ssh, curl and locales
 RUN apt-get update
-RUN apt-get install -y openssh-server curl
+RUN apt-get install -y openssh-server curl locales
 RUN apt-get clean
+
+# Generate and set default locale
+RUN echo en_US.UTF-8 UTF-8 > /etc/locale.gen
+RUN locale-gen
+RUN echo LANG=en_US.UTF-8 > /etc/default/locale
+
 RUN mkdir /var/run/sshd
