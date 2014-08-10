@@ -18,4 +18,5 @@ Gem::Specification.new do |s|
   s.homepage = "http://github.com/ema/knife-docker"
   s.require_paths = ["lib"]
   s.add_dependency(%q<chef>, [">= 0.10.0"])
+  s.add_runtime_dependency("docker-api", "~> 1.13", ">= 1.13.2")
 end
